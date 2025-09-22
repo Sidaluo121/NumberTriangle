@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 
 /**
  * This is the provided NumberTriangle class to be used in this coding task.
@@ -64,6 +65,28 @@ public class NumberTriangle {
      */
     public void maxSumPath() {
         // for fun [not for credit]:
+        if (isLeaf()) {
+            return;
+        }
+
+        if (left != null) {
+            left.maxSumPath();
+        }
+        if (right != null) {
+            right.maxSumPath();
+        }
+
+        if (left != null && right != null) {
+            root += Math.max(left.root, right.root);
+        } else if (left != null) {
+            root += left.root;
+        } else if (right != null) {
+            root += right.root;
+        }
+
+        // Set children to null to make this a leaf
+        left = null;
+        right = null;
     }
 
 
@@ -88,8 +111,18 @@ public class NumberTriangle {
      *
      */
     public int retrieve(String path) {
-        // TODO implement this method
-        return -1;
+        NumberTriangle current = this;
+
+        for (int i = 0; i < path.length(); i++) {
+            char direction = path.charAt(i);
+            if (direction == 'l') {
+                current = current.left;
+            } else if (direction == 'r') {
+                current = current.right;
+            }
+        }
+
+        return current.getRoot();
     }
 
     /** Read in the NumberTriangle structure from a file.
@@ -107,32 +140,58 @@ public class NumberTriangle {
         // open the file and get a BufferedReader object whose methods
         // are more convenient to work with when reading the file contents.
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
+        if (inputStream == null) {
+            throw new FileNotFoundException("File not found: " + fname);
+        }
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 
-
-        // TODO define any variables that you want to use to store things
-
-        // will need to return the top of the NumberTriangle,
-        // so might want a variable for that.
+        List<List<NumberTriangle>> rows = new ArrayList<>();
         NumberTriangle top = null;
 
         String line = br.readLine();
         while (line != null) {
+            // Skip empty lines
+            if (line.trim().isEmpty()) {
+                line = br.readLine();
+                continue;
+            }
 
-            // remove when done; this line is included so running starter code prints the contents of the file
-            System.out.println(line);
+            // Split the line by spaces and convert to integers
+            String[] numbers = line.trim().split("\\s+");
+            List<NumberTriangle> currentRow = new ArrayList<>();
 
-            // TODO process the line
+            for (String numStr : numbers) {
+                int num = Integer.parseInt(numStr);
+                currentRow.add(new NumberTriangle(num));
+            }
 
-            //read the next line
+            rows.add(currentRow);
+
+            // If this is the first row, set the top node
+            if (rows.size() == 1) {
+                top = currentRow.get(0);
+            }
+
+            // Connect this row to the previous row
+            if (rows.size() > 1) {
+                List<NumberTriangle> previousRow = rows.get(rows.size() - 2);
+                List<NumberTriangle> currentRowList = rows.get(rows.size() - 1);
+
+                for (int i = 0; i < previousRow.size(); i++) {
+                    NumberTriangle parent = previousRow.get(i);
+                    parent.setLeft(currentRowList.get(i));
+                    parent.setRight(currentRowList.get(i + 1));
+                }
+            }
+
             line = br.readLine();
         }
+
         br.close();
         return top;
     }
 
     public static void main(String[] args) throws IOException {
-
         NumberTriangle mt = NumberTriangle.loadTriangle("input_tree.txt");
 
         // [not for credit]
