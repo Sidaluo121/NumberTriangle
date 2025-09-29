@@ -13,7 +13,7 @@ import java.util.*;
  *                  a
  *                b   c
  *              d   e   f
- *            h   i   j   k
+ *            h   i   j   l
  *
  * Also note that this data structure is minimally defined and is only intended to
  * be constructed using the loadTriangle method, which you will implement
